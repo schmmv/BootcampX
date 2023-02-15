@@ -1,3 +1,4 @@
+const { query } = require('express');
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -7,16 +8,19 @@ const pool = new Pool({
   database: 'bootcampx'
 });
 
-pool.query(`
+const queryString = `
 SELECT DISTINCT teachers.name AS teacher, cohorts.name AS cohort
 FROM teachers
 JOIN assistance_requests ON teachers.id = teacher_id
 JOIN students ON student_id = students.id
 JOIN cohorts ON cohort_id = cohorts.id
-WHERE cohorts.name = '${process.argv[2] || 'JUL02'}'
-ORDER BY teacher;`)
+WHERE cohorts.name = $1
+ORDER BY teacher;
+`;
+const cohortName = process.argv[2] || 'JUL02';
+
+pool.query(queryString, [cohortName])
 .then(res => {
-  console.log(res.rows);
   res.rows.forEach(row => {
     console.log(`${row.cohort}: ${row.teacher}`);
   })
